@@ -121,9 +121,10 @@ final class BP_XProfile_Field_Activity {
 			return;
 
 		// Register activity action(s)
-		add_action( 'bp_register_activity_actions',     array( $this, 'register_activity_actions' ) );
-		add_action( 'bp_after_activity_get_parse_args', array( $this, 'profile_filter_actions'    ) );
-		add_filter( 'bp_activity_get',                  array( $this, 'activity_get'              ) );
+		add_action( 'bp_register_activity_actions',     array( $this, 'register_activity_actions' )        );
+		add_action( 'bp_after_activity_get_parse_args', array( $this, 'profile_filter_actions'    )        );
+		add_action( 'bp_ajax_querystring',              array( $this, 'ajax_querystring'          ), 90, 2 );
+		add_filter( 'bp_activity_get',                  array( $this, 'activity_get'              )        );
 
 		// Field data update
 		add_action( 'xprofile_data_before_save', array( $this, 'profile_check_update'    ) );
@@ -195,6 +196,46 @@ final class BP_XProfile_Field_Activity {
 	}
 
 	/**
+	 * Act when the activity AJAX querystring is setup
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $qs Query string
+	 * @param string $object Activity object/component context
+	 * @return stringn Query string
+	 */
+	public function ajax_querystring( $qs, $object ) {
+
+		// Doing an activity query
+		if ( 'activity' === $object ) {
+
+			/**
+			 * Set up the cookies passed on this AJAX request. Store a local var
+			 * to avoid conflicts.
+			 *
+			 * @see bp_legacy_theme_ajax_querystring()
+			 */
+			if ( ! empty( $_POST['cookie'] ) ) {
+				$_BP_COOKIE = wp_parse_args( str_replace( '; ', '&', urldecode( $_POST['cookie'] ) ) );
+			} else {
+				$_BP_COOKIE = &$_COOKIE;
+			}
+
+			// Read cookie data to determine filter type
+			if ( isset( $_BP_COOKIE['bp-activity-filter'] ) && 'updated_profile' === $_BP_COOKIE['bp-activity-filter'] ) {
+
+				/**
+				 * Set filter flag. This is immediately cleared after parsing the
+				 * activity query arguments.
+				 */
+				$this->activity_profile_filter = true;
+			}
+		}
+
+		return $qs;
+	}
+
+	/**
 	 * Modify the parsed activity query arguments
 	 *
 	 * @since 1.0.0
@@ -204,11 +245,20 @@ final class BP_XProfile_Field_Activity {
 	 */
 	public function profile_filter_actions( $args ) {
 
-		// Add 'updated_profile_field' to the 'updated_profile' action query
-		if ( isset( $args['filter']['action'] ) && 'updated_profile' === $args['filter']['action'] ) {
+		// This is an 'updated_profile' action query
+		if ( isset( $this->activity_profile_filter ) && $this->activity_profile_filter ) {
+
+			// Add 'updated_profile_field' to the profile filter query
 			$action   = (array) $args['filter']['action'];
 			$action[] = 'updated_profile_field';
 			$args['filter']['action'] = $action;
+
+			/**
+			 * Clear the filter flag. Doing so ensures the above query
+			 * modifcation is only applied at the very first query after
+			 * the activity AJAX query string was defined.
+			 */
+			$this->activity_profile_filter = false;
 		}
 
 		return $args;
