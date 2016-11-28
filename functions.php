@@ -98,8 +98,8 @@ function bp_xprofile_field_activity_with_content( $field ) {
 		return false;
 
 	// Enable filtering on field types that have activity content
-	$field_types  = apply_filters( 'bp_xprofile_field_activity_content_field_types', array( 'textarea' ) );
-	$with_content = in_array( $field->type, $field_types );
+	$field_types  = (array) apply_filters( 'bp_xprofile_field_activity_content_field_types', array( 'textarea' ) );
+	$with_content = in_array( $field->type, $field_types, true );
 
 	return (bool) apply_filters( 'bp_xprofile_field_activity_with_content', $with_content, $field );
 }
