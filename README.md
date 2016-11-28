@@ -10,12 +10,18 @@ Use this plugin to record activity when members change data for selected profile
 
 The plugin uses BuddyPress' profile update throttle time, which limits activity recording for changes to the same field within a window of two hours (default time). For simplicity's sake, profile field update activity items do not have their own activity filter, but are listed with the 'Profile Updates' stream filter.
 
+You would use this when you want your community to know when certain profile fields were changed by your members. For example:
+
+* Changing the professional contact details in an intranet community
+* Changing the relationship status in a dating community
+* Changing the personal address in a friendship community
+
 ### Developers ###
 
-For developers several filters are available to alter the behavior or this plugin:
+For developers several filters are available to alter the behavior of this plugin:
 
 * `'bp_xprofile_field_activity_pre_record'` to short-circuit activity recording
-* `'bp_xprofile_field_activity_is_private'` modifies whether the update's field data is considered private and thus not recorded
+* `'bp_xprofile_field_activity_is_private'` modifies whether the profile field is considered private and should therefore not record activity
 * `'bp_xprofile_field_activity_is_enabled'` to determine whether the field has activity recording enabled
 * `'bp_xprofile_field_activity_content_field_types'` to list which profile field types have data to list as activity content - defaults to `array( 'textarea' )`
 * `'bp_xprofile_field_activity_with_content'` to determine whether the field has data to list as activity content
